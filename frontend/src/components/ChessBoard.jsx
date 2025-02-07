@@ -5,6 +5,45 @@ import './ChessBoard.css'
 function ChessBoard() {
   const [game, setGame] = useState(new Chess())
   const [selectedSquare, setSelectedSquare] = useState(null)
+  const [draggedPiece, setDraggedPiece] = useState(null)
+
+  const handleDragStart = (e, square) => {
+    const piece = game.get(square)
+    if (piece && piece.color === game.turn()) {
+      setDraggedPiece(square)
+      // Set a transparent drag image
+      const dragImage = e.target.cloneNode(true)
+      dragImage.style.opacity = '0'
+      document.body.appendChild(dragImage)
+      e.dataTransfer.setDragImage(dragImage, 35, 35)
+      setTimeout(() => document.body.removeChild(dragImage), 0)
+    } else {
+      e.preventDefault()
+    }
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (e, targetSquare) => {
+    e.preventDefault()
+    if (draggedPiece) {
+      try {
+        game.move({
+          from: draggedPiece,
+          to: targetSquare,
+          promotion: 'q'
+        })
+        setGame(new Chess(game.fen()))
+      } catch (e) {
+        // Invalid move
+        console.log('Invalid move')
+      }
+      setDraggedPiece(null)
+      setSelectedSquare(null)
+    }
+  }
 
   const handleSquareClick = (square) => {
     if (selectedSquare === null) {
@@ -33,8 +72,9 @@ function ChessBoard() {
 
   const getSquareClass = (square) => {
     const isSelected = square === selectedSquare
+    const isDragged = square === draggedPiece
     const isLight = (square.charCodeAt(0) + square.charCodeAt(1)) % 2 === 0
-    return `square ${isLight ? 'light' : 'dark'} ${isSelected ? 'selected' : ''}`
+    return `square ${isLight ? 'light' : 'dark'} ${isSelected ? 'selected' : ''} ${isDragged ? 'dragged' : ''}`
   }
 
   const renderBoard = () => {
@@ -50,9 +90,15 @@ function ChessBoard() {
                   key={square}
                   className={getSquareClass(square)}
                   onClick={() => handleSquareClick(square)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, square)}
                 >
                   {piece && (
-                    <div className={`piece ${piece.color === 'w' ? 'white-piece' : 'black-piece'}`}>
+                    <div 
+                      className={`piece ${piece.color === 'w' ? 'white-piece' : 'black-piece'}`}
+                      draggable={true}
+                      onDragStart={(e) => handleDragStart(e, square)}
+                    >
                       {getPieceSymbol(piece)}
                     </div>
                   )}
