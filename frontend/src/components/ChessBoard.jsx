@@ -8,23 +8,24 @@ function ChessBoard() {
 
   const handleSquareClick = (square) => {
     if (selectedSquare === null) {
-      // First click - select the piece
       const piece = game.get(square)
-      if (piece) {
+      if (piece && piece.color === game.turn()) {
         setSelectedSquare(square)
       }
     } else {
-      // Second click - attempt to move
       try {
         game.move({
           from: selectedSquare,
           to: square,
-          promotion: 'q' // Always promote to queen for simplicity
+          promotion: 'q'
         })
-        setGame(new Chess(game.fen())) // Force a re-render
+        setGame(new Chess(game.fen()))
       } catch (e) {
         // Invalid move
-        console.log('Invalid move')
+        if (game.get(square)?.color === game.turn()) {
+          setSelectedSquare(square)
+          return
+        }
       }
       setSelectedSquare(null)
     }
@@ -50,7 +51,21 @@ function ChessBoard() {
                   className={getSquareClass(square)}
                   onClick={() => handleSquareClick(square)}
                 >
-                  {piece && <div className="piece">{getPieceSymbol(piece)}</div>}
+                  {piece && (
+                    <div className={`piece ${piece.color === 'w' ? 'white-piece' : 'black-piece'}`}>
+                      {getPieceSymbol(piece)}
+                    </div>
+                  )}
+                  {i === 7 && (
+                    <span className="coordinates file-coord">
+                      {String.fromCharCode(97 + j)}
+                    </span>
+                  )}
+                  {j === 0 && (
+                    <span className="coordinates rank-coord">
+                      {8 - i}
+                    </span>
+                  )}
                 </div>
               )
             })}
@@ -65,20 +80,21 @@ function ChessBoard() {
       'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚',
       'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕', 'K': '♔'
     }
-    return symbols[piece.type] || ''
+    return symbols[piece.type]
+  }
+
+  const getGameStatus = () => {
+    if (game.isCheckmate()) return 'Checkmate!'
+    if (game.isDraw()) return 'Draw!'
+    if (game.isStalemate()) return 'Stalemate!'
+    if (game.isCheck()) return 'Check!'
+    return `${game.turn() === 'w' ? 'White' : 'Black'}'s turn`
   }
 
   return (
     <div className="chess-container">
       <div className="game-info">
-        <div>{`Turn: ${game.turn() === 'w' ? 'White' : 'Black'}`}</div>
-        {game.isGameOver() && (
-          <div>
-            {game.isCheckmate() ? 'Checkmate!' : 
-             game.isDraw() ? 'Draw!' : 
-             game.isStalemate() ? 'Stalemate!' : 'Game Over!'}
-          </div>
-        )}
+        <div>{getGameStatus()}</div>
       </div>
       {renderBoard()}
     </div>
