@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Chess } from 'chess.js'
 import './ChessBoard.css'
 
@@ -6,12 +6,26 @@ function ChessBoard() {
   const [game, setGame] = useState(new Chess())
   const [selectedSquare, setSelectedSquare] = useState(null)
   const [draggedPiece, setDraggedPiece] = useState(null)
+  const [validMoves, setValidMoves] = useState([])
+
+  const updateValidMoves = useCallback((square) => {
+    if (!square) {
+      setValidMoves([])
+      return
+    }
+    const moves = game.moves({ square, verbose: true })
+    setValidMoves(moves.map(move => move.to))
+  }, [game])
+
+  useEffect(() => {
+    updateValidMoves(selectedSquare)
+  }, [selectedSquare, updateValidMoves])
 
   const handleDragStart = (e, square) => {
     const piece = game.get(square)
     if (piece && piece.color === game.turn()) {
       setDraggedPiece(square)
-      // Set a transparent drag image
+      updateValidMoves(square)
       const dragImage = e.target.cloneNode(true)
       dragImage.style.opacity = '0'
       document.body.appendChild(dragImage)
@@ -38,10 +52,10 @@ function ChessBoard() {
         setGame(new Chess(game.fen()))
       } catch (e) {
         // Invalid move
-        console.log('Invalid move')
       }
       setDraggedPiece(null)
       setSelectedSquare(null)
+      setValidMoves([])
     }
   }
 
@@ -50,6 +64,7 @@ function ChessBoard() {
       const piece = game.get(square)
       if (piece && piece.color === game.turn()) {
         setSelectedSquare(square)
+        updateValidMoves(square)
       }
     } else {
       try {
@@ -59,22 +74,33 @@ function ChessBoard() {
           promotion: 'q'
         })
         setGame(new Chess(game.fen()))
+        setSelectedSquare(null)
+        setValidMoves([])
       } catch (e) {
-        // Invalid move
         if (game.get(square)?.color === game.turn()) {
           setSelectedSquare(square)
-          return
+          updateValidMoves(square)
         }
       }
-      setSelectedSquare(null)
     }
+  }
+
+  const resetGame = () => {
+    setGame(new Chess())
+    setSelectedSquare(null)
+    setDraggedPiece(null)
+    setValidMoves([])
   }
 
   const getSquareClass = (square) => {
     const isSelected = square === selectedSquare
     const isDragged = square === draggedPiece
+    const isValidMove = validMoves.includes(square)
     const isLight = (square.charCodeAt(0) + square.charCodeAt(1)) % 2 === 0
-    return `square ${isLight ? 'light' : 'dark'} ${isSelected ? 'selected' : ''} ${isDragged ? 'dragged' : ''}`
+    return `square ${isLight ? 'light' : 'dark'} 
+            ${isSelected ? 'selected' : ''} 
+            ${isDragged ? 'dragged' : ''} 
+            ${isValidMove ? 'valid-move' : ''}`
   }
 
   const renderBoard = () => {
@@ -96,12 +122,13 @@ function ChessBoard() {
                   {piece && (
                     <div 
                       className={`piece ${piece.color === 'w' ? 'white-piece' : 'black-piece'}`}
-                      draggable={true}
+                      draggable={piece.color === game.turn()}
                       onDragStart={(e) => handleDragStart(e, square)}
                     >
                       {getPieceSymbol(piece)}
                     </div>
                   )}
+                  {validMoves.includes(square) && <div className="valid-move" />}
                   {i === 7 && (
                     <span className="coordinates file-coord">
                       {String.fromCharCode(97 + j)}
@@ -137,12 +164,24 @@ function ChessBoard() {
     return `${game.turn() === 'w' ? 'White' : 'Black'}'s turn`
   }
 
+  const handleNewGame = () => {
+    resetGame()
+  }
+
   return (
     <div className="chess-container">
       <div className="game-info">
         <div>{getGameStatus()}</div>
       </div>
       {renderBoard()}
+      <div className="game-controls">
+        <button 
+          className="control-btn new-game" 
+          onClick={handleNewGame}
+        >
+          ↺ New Game
+        </button>
+      </div>
     </div>
   )
 }

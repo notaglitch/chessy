@@ -124,4 +124,73 @@
 .black-piece {
   color: #000;
   text-shadow: 0 0 3px #fff;
+}
+
+.game-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.control-btn {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(145deg, #27ae60, #219a52);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.control-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(145deg, #219a52, #1e8449);
+}
+
+.control-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn.new-game {
+  background: linear-gradient(145deg, #27ae60, #219a52);
+  position: relative;
+  overflow: hidden;
+}
+
+.control-btn.new-game:hover {
+  background: linear-gradient(145deg, #219a52, #1e8449);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.control-btn.new-game:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Add a subtle pulse animation when there are moves in the game */
+@keyframes subtle-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.control-btn.new-game:not(:disabled) {
+  animation: subtle-pulse 2s infinite;
+}
+
+/* Responsive design for buttons */
+@media (max-width: 480px) {
+  .control-btn {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
 } 
