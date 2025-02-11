@@ -170,17 +170,24 @@ function ChessBoard() {
 
   return (
     <div className="chess-container">
-      <div className="game-info">
-        <div>{getGameStatus()}</div>
-      </div>
-      {renderBoard()}
-      <div className="game-controls">
-        <button 
-          className="control-btn new-game" 
-          onClick={handleNewGame}
-        >
-          ↺ New Game
-        </button>
+      <div className="chess-main">
+        <div className="board-wrapper">
+          {renderBoard()}
+        </div>
+        <div className="chess-sidebar">
+          <div className="game-info">
+            <h2>Game Status</h2>
+            <div className="status">{getGameStatus()}</div>
+          </div>
+          <div className="game-controls">
+            <button 
+              className="control-btn new-game" 
+              onClick={handleNewGame}
+            >
+              ↺ New Game
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
